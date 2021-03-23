@@ -26,5 +26,9 @@ namespace Servicios.api.Libreria.Repository
             PaginationEntity<TDocument> pagination
             );
 
+        Task<PaginationEntity<TDocument>> PaginationByFilter(             
+             PaginationEntity<TDocument> pagination
+            );
+
     }
 }

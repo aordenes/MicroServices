@@ -18,8 +18,12 @@ namespace Servicios.api.Libreria.Core.Entities
 
         public string Filter { get; set; }
 
+        public FilterValueCls FilterValue { get; set; }
+
         public int PageQuantity { get; set; }
 
         public IEnumerable<TDocument> Data { get; set; }
+
+        public int TotalRows { get; set; } 
     }
 }

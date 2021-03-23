@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Servicios.api.Libreria.Core;
 using Servicios.api.Libreria.Core.Entities;
@@ -105,6 +106,59 @@ namespace Servicios.api.Libreria.Repository
 
             return pagination;
                
+        }
+
+        /// <summary>
+        /// Metodo encargado de la paginacion respecto a la data obtenida. con expresion regular, para cualquier tipo de filtro.
+        /// </summary>
+        /// <param name="pagination"></param>
+        /// <returns></returns>
+        public async Task<PaginationEntity<TDocument>> PaginationByFilter(PaginationEntity<TDocument> pagination)
+        {
+            var sort = Builders<TDocument>.Sort.Ascending(pagination.Sort);
+
+            if (pagination.SortDirection.Equals("desc"))
+            {
+                sort = Builders<TDocument>.Sort.Descending(pagination.Sort);
+            }
+            // si no tengo filtros devulevo la data
+            var totalDocument = 0;
+            if (pagination.FilterValue == null)//(pagination.FilterValue.Equals(null))
+            {
+                pagination.Data = await _collection.Find(a => true)
+                                  .Sort(sort)
+                                  .Skip((pagination.Page - 1) * pagination.PageSize)//desde que psosicion quiero contar  
+                                  .Limit(pagination.PageSize)//cuanto elementos quiero extraer
+                                  .ToListAsync();
+
+                totalDocument = (await _collection.Find(a => true).ToListAsync()).Count;
+            }
+            else
+            {
+                //se crea un regular expresion busca todos los valores que coincidan con una parte de busqueda del parametro
+                var filterValue = ".*" + pagination.FilterValue.Valor + ".*";
+                // recordar que la expresion regular del filtro debe ser agragada a la busqueda en MongoDb, no quiero que se key sensitive (letra i en l asobrecarga del metoso)
+                var filter = Builders<TDocument>.Filter.Regex(pagination.FilterValue.Propiedad,  new BsonRegularExpression(filterValue, "i"));
+                pagination.Data = await _collection.Find(filter)
+                                   .Sort(sort)
+                                   .Skip((pagination.Page - 1) * pagination.PageSize)//desde que psosicion quiero contar  
+                                   .Limit(pagination.PageSize)//cuanto elementos quiero extraer
+                                   .ToListAsync();
+
+                totalDocument = (await _collection.Find(filter).ToListAsync()).Count;
+            }
+
+            //long totalDocument = await _collection.CountDocumentsAsync(FilterDefinition<TDocument>.Empty);//obtener todos los records de esta coleccion
+
+            var redondeo = Math.Ceiling(totalDocument / Convert.ToDecimal(pagination.PageSize));
+            
+
+            var totalPages = (int)(redondeo); //Convert.ToInt32(redondeo);
+
+            pagination.PageQuantity = totalPages;
+            pagination.TotalRows = (int)totalDocument;
+
+            return pagination;
         }
 
         #endregion

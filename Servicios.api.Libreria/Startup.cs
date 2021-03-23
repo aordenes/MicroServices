@@ -49,6 +49,14 @@ namespace Servicios.api.Libreria
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Servicios.api.Libreria", Version = "v1" });
             });
+
+            services.AddCors(opcion =>
+            {
+                opcion.AddPolicy("CorsRule", regla =>
+                {
+                    regla.AllowAnyHeader().AllowAnyMethod().WithOrigins("*");//si es publico le doy *, si no le doy acceso a la url que yo quiero, asi la spersona spueden acceder a tu api
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,6 +70,10 @@ namespace Servicios.api.Libreria
             }
 
             app.UseRouting();
+
+            //tener el mismo cors que se utiliza en la configuracion de la regla
+            //estamso haciendo que los metoso san expustea de manera publica por el momento
+            app.UseCors("CorsRule");
 
             app.UseAuthorization();
 

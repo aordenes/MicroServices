@@ -47,10 +47,22 @@ namespace Servicios.api.Libreria.Controllers
             await _autorGenercioRepository.UpdateDocument(autor);           
         }
 
-        [HttpDelete]
+        [HttpDelete("{Id}")]
         public async Task Delete(string Id)
         {           
             await _autorGenercioRepository.DeleteById(Id);
         }
+
+        [HttpPost("pagination")]
+        public async Task<ActionResult<PaginationEntity<AutorEntity>>> PostPagination(PaginationEntity<AutorEntity> paginationEntity)
+        { 
+           //var result = await _autorGenercioRepository.PaginationBy(filtro => filtro.Nombre == paginationEntity.Filter,
+           //                                                         paginationEntity); Se cambia por el nuevo filtro creado.
+
+            var result = await _autorGenercioRepository.PaginationByFilter(paginationEntity);
+
+            return Ok(result);
+        }
+
     }
 }
